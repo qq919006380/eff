@@ -11,7 +11,6 @@ const userHome = require("user-home");
 const pkg = require("../package.json");
 const constant = require("./const");
 
-
 let args, config;
 
 function core() {
@@ -19,12 +18,20 @@ function core() {
     checkPkgVersion();
     checkNodeVersion();
     checkRoot();
-    checkUserHome();
-    checkInputArgs();
-    checkEnv();
+    checkUserHome(); //检查用户主目录
+    checkInputArgs(); //检查命令参数
+    checkEnv(); //检查环境变量
+    checkGlobalUpdate(); //检查是否需要更新
   } catch (e) {
     log.error(e.message);
   }
+}
+function checkGlobalUpdate() {
+  // 1.获取当前版本号和模块名
+  const currentVersion = pkg.version;
+  const npmName = pkg.name;
+  // 2.调用npm API，对比哪些版本号是大于当前版本号
+  // 3.获取最新的版本号，提示用户更新到该版本
 }
 function checkEnv() {
   const dotenv = require("dotenv");
@@ -33,7 +40,7 @@ function checkEnv() {
     dotenv.config({
       path: dotenvPath,
     });
-  } 
+  }
   createDefaultConfig();
   log.verbose("环境变量", process.env.CLI_HOME_PATH);
 }
