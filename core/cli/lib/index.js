@@ -32,8 +32,11 @@ function checkGlobalUpdate() {
   const npmName = pkg.name;
   // 2.调用npm API，对比哪些版本号是大于当前版本号
   
+  const { getNpmInfo } = require("@eff-org/get-npm-info");
+  getNpmInfo(npmName);
   // 3.获取最新的版本号，提示用户更新到该版本
 }
+
 function checkEnv() {
   const dotenv = require("dotenv");
   const dotenvPath = path.resolve(userHome, ".env");
