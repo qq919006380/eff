@@ -11,9 +11,9 @@ const userHome = require("user-home");
 const pkg = require("../package.json");
 const constant = require("./const");
 
-let args, config;
+let args;
 
-function core() {
+async function core() {
   try {
     checkPkgVersion();
     checkNodeVersion();
@@ -26,15 +26,21 @@ function core() {
     log.error(e.message);
   }
 }
-function checkGlobalUpdate() {
+async function checkGlobalUpdate() {
   // 1.获取当前版本号和模块名
   const currentVersion = pkg.version;
   const npmName = pkg.name;
   // 2.调用npm API，对比哪些版本号是大于当前版本号
-  
-  const { getNpmInfo } = require("@eff-org/get-npm-info");
-  getNpmInfo(npmName);
+  const { getNpmSemverVersion } = require("@eff-org/get-npm-info");
+  const lastVersion = await getNpmSemverVersion(currentVersion, npmName);
+  console.log("new", lastVersion);
   // 3.获取最新的版本号，提示用户更新到该版本
+  if (lastVersion && semver.gt(lastVersion, currentVersion)) {
+    log.warn(
+      colors.yellow(`请手动更新 ${npmName}，当前版本：${currentVersion}，最新版本：${lastVersion}
+                更新命令： npm install -g ${npmName}`)
+    );
+  }
 }
 
 function checkEnv() {
