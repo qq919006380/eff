@@ -20,12 +20,14 @@
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "dependencies": {
-    "@eff-org/log": "file:../../utils/log",
     "@eff-org/get-npm-info": "file:../../utils/get-npm-info",
+    "@eff-org/log": "file:../../utils/log",
+    "@eff-org/init": "file:../../commands/init",
+    "@eff-org/exec": "file:../exec",
     "colors": "^1.4.0",
+    "commander": "^6.1.0",
     "dotenv": "^10.0.0",
     "import-local": "^3.0.2",
-    "minimist": "^1.2.5",
     "npmlog": "^4.1.2",
     "path-exists": "^4.0.0",
     "root-check": "^1.0.0",

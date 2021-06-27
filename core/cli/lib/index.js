@@ -7,25 +7,77 @@ const colors = require("colors/safe");
 const log = require("@eff-org/log");
 const pathExists = require("path-exists").sync;
 const userHome = require("user-home");
+const commander = require("commander");
+const init = require("@eff-org/init");
+const exec = require("@eff-org/exec");
 
 const pkg = require("../package.json");
 const constant = require("./const");
 
-let args;
+const program = new commander.Command();
 
 async function core() {
   try {
-    checkPkgVersion();
-    checkNodeVersion();
-    checkRoot();
-    checkUserHome(); //检查用户主目录
-    checkInputArgs(); //检查命令参数
-    checkEnv(); //检查环境变量
-    checkGlobalUpdate(); //检查是否需要更新
+    await prepare();
+    registerCommand();
   } catch (e) {
     log.error(e.message);
   }
 }
+
+function registerCommand() {
+  program
+    .name(Object.keys(pkg.bin)[0])
+    .usage("<command> [options]")
+    .version(pkg.version)
+    .option("-d, --debug", "是否开始调试模式", false)
+    .option("-tp, --targetPath <targetPath>", "是否指定本地调试文件路径", "");
+
+  program
+    .command("init [projectName]")
+    .option("-f, --force", "是否强制初始化项目")
+    .action(exec);
+
+  // 开启debug模式
+  program.on("option:debug", function () {
+    if (program.debug) {
+      process.env.LOG_LEVEL = "verbose";
+    } else {
+      process.env.LOG_LEVEL = "info";
+    }
+    log.level = process.env.LOG_LEVEL;
+  });
+
+  // 指定targetPath
+  program.on("option:targetPath", function () {
+    process.env.CLI_TARGET_PATH = program.targetPath;
+  });
+
+  // 对未知命令监听
+  program.on("command:*", function (obj) {
+    const avaliableCommands = program.commands.map((cmd) => cmd.name());
+    console.log(colors.red("未知命令:" + obj[0]));
+    if (avaliableCommands.length > 0) {
+      console.log(colors.red("可用命令") + avaliableCommands.join(","));
+    }
+  });
+
+  program.parse(process.argv);
+
+  if (program.args && program.args.length < 1) {
+    program.outputHelp();
+  }
+}
+
+async function prepare() {
+  checkPkgVersion();
+  checkNodeVersion();
+  checkRoot();
+  checkUserHome(); //检查用户主目录
+  checkEnv(); //检查环境变量
+  await checkGlobalUpdate(); //检查是否需要更新
+}
+
 async function checkGlobalUpdate() {
   // 1.获取当前版本号和模块名
   const currentVersion = pkg.version;
@@ -33,7 +85,6 @@ async function checkGlobalUpdate() {
   // 2.调用npm API，对比哪些版本号是大于当前版本号
   const { getNpmSemverVersion } = require("@eff-org/get-npm-info");
   const lastVersion = await getNpmSemverVersion(currentVersion, npmName);
-  console.log("new", lastVersion);
   // 3.获取最新的版本号，提示用户更新到该版本
   if (lastVersion && semver.gt(lastVersion, currentVersion)) {
     log.warn(
@@ -52,7 +103,6 @@ function checkEnv() {
     });
   }
   createDefaultConfig();
-  log.verbose("环境变量", process.env.CLI_HOME_PATH);
 }
 function createDefaultConfig() {
   const cliConfig = {
@@ -64,20 +114,6 @@ function createDefaultConfig() {
     cliConfig["cliHome"] = path.join(userHome, constant.DEFAULT_CLI_HOME);
   }
   process.env.CLI_HOME_PATH = cliConfig.cliHome;
-}
-
-function checkInputArgs() {
-  const minimist = require("minimist");
-  args = minimist(process.argv.slice(2));
-  checkArgs();
-}
-function checkArgs() {
-  if (args.debug) {
-    process.env.LOG_LEVEL = "verbose";
-  } else {
-    process.env.LOG_LEVEL = "info";
-  }
-  log.level = process.env.LOG_LEVEL;
 }
 
 function checkUserHome() {
@@ -100,5 +136,5 @@ function checkNodeVersion() {
   }
 }
 function checkPkgVersion() {
-  log.notice("version", pkg.version);
+  log.info("version", pkg.version);
 }
