@@ -15,13 +15,15 @@ const pkg = require("../package.json");
 const constant = require("./const");
 
 const program = new commander.Command();
-
 async function core() {
   try {
     await prepare();
     registerCommand();
   } catch (e) {
     log.error(e.message);
+    if (process.env.LOG_LEVEL === 'verbose') {
+      console.log(e);
+    }
   }
 }
 
@@ -40,6 +42,7 @@ function registerCommand() {
 
   // 开启debug模式
   program.on("option:debug", function () {
+    console.log(program.debug);
     if (program.debug) {
       process.env.LOG_LEVEL = "verbose";
     } else {
@@ -47,7 +50,6 @@ function registerCommand() {
     }
     log.level = process.env.LOG_LEVEL;
   });
-
   // 指定targetPath
   program.on("option:targetPath", function () {
     process.env.CLI_TARGET_PATH = program.targetPath;

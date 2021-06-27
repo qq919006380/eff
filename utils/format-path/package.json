@@ -1,5 +1,5 @@
 {
-  "name": "@eff-org/package",
+  "name": "@eff-org/format-path",
   "version": "0.0.4",
   "description": "> TODO: description",
   "author": "weibo <919006380@qq.com>",
@@ -22,13 +22,6 @@
   },
   "scripts": {
     "test": "echo \"Error: run tests from root\" && exit 1"
-  },
-  "dependencies": {
-    "@eff-org/format-path": "file:../../utils/format-path",
-    "@eff-org/utils": "file:../../utils/utils",
-    "@eff-org/get-npm-info": "file:../../utils/get-npm-info",
-    "pkg-dir": "^5.0.0",
-    "npminstall": "^4.11.0"
   },
   "bugs": {
     "url": "https://github.com/qq919006380/eff/issues"
