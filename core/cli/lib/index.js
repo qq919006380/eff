@@ -8,7 +8,6 @@ const log = require("@eff-org/log");
 const pathExists = require("path-exists").sync;
 const userHome = require("user-home");
 const commander = require("commander");
-const init = require("@eff-org/init");
 const exec = require("@eff-org/exec");
 
 const pkg = require("../package.json");
@@ -21,7 +20,7 @@ async function core() {
     registerCommand();
   } catch (e) {
     log.error(e.message);
-    if (process.env.LOG_LEVEL === 'verbose') {
+    if (process.env.LOG_LEVEL === "verbose") {
       console.log(e);
     }
   }
@@ -73,7 +72,7 @@ function registerCommand() {
 
 async function prepare() {
   checkPkgVersion();
-  checkNodeVersion();
+
   checkRoot();
   checkUserHome(); //检查用户主目录
   checkEnv(); //检查环境变量
@@ -127,16 +126,7 @@ function checkRoot() {
   const rootCheck = require("root-check");
   rootCheck();
 }
-function checkNodeVersion() {
-  // 检查当前版本号
-  const currentVersion = process.version;
 
-  // 比对最低版本号
-  const lowesVersion = constant.LOWEST_NODE_VERSION;
-  if (!semver.gte(currentVersion, lowesVersion)) {
-    throw new Error(colors.red(`eff-org需要安装${lowesVersion}以上版本`));
-  }
-}
 function checkPkgVersion() {
   log.info("version", pkg.version);
 }
