@@ -1,12 +1,14 @@
 "use strict";
 
+const cp = require("child_process");
+const path = require("path");
 const Package = require("@eff-org/package");
 const log = require("@eff-org/log");
 const SETTINGS = {
   init: "jquery",
 };
 const CACHE_DIR = "dependencies/";
-const path = require("path");
+
 async function exec() {
   let targetPath = process.env.CLI_TARGET_PATH;
   const homePath = process.env.CLI_HOME_PATH;
@@ -48,12 +50,50 @@ async function exec() {
     if (rootFile) {
       try {
         // 在当前进程中调用
-        require(rootFile).call(null, Array.from(arguments));
+        // require(rootFile).call(null, Array.from(arguments));
         // 在node子进程中调用
+        const args = Array.from(arguments);
+        const cmd = args[args.length - 1];
+        const o = Object.create(null);
+        Object.keys(cmd).forEach((key) => {
+          if (
+            cmd.hasOwnProperty(key) &&
+            !key.startsWith("_") &&
+            key !== "parent"
+          ) {
+            o[key] = cmd[key];
+          }
+        });
+        args[args.length - 1] = o;
+        const code = `require('${rootFile}').call(null, ${JSON.stringify(
+          args
+        )});`;
+        const child = spawn("node", ["-e", code], {
+          cwd: process.cwd(),
+          stdio: "inherit",
+        });
+        child.on("error", (e) => {
+          log.error(e.message);
+          process.exit(1);
+        });
+        child.on("exit", (e) => {
+          log.verbose("命令执行成功", e);
+          process.exit(e);
+        });
       } catch (e) {
         log.error(e.message);
       }
     }
   }
 }
+
+function spawn(command, args, option) {
+  const win32 = process.platform === "win32";
+
+  const cmd = win32 ? "cmd" : command;
+  const cmdArgs = win32 ? ["/c"].concat(command, args) : args;
+
+  return cp.spawn(cmd,cmdArgs,option||{})
+}
+
 module.exports = exec;

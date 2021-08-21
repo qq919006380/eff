@@ -6,7 +6,8 @@ const colors = require("colors/safe");
 const LOWEST_NODE_VERSION = "8.0.0";
 class Command {
   constructor(argv) {
-    this._argv = argv;
+    // log.verbose("Command constructor", argv);
+    
     if (!argv) {
       throw new Error("参数不能为空");
     }
@@ -16,6 +17,7 @@ class Command {
     if (argv.length < 1) {
       throw new Error("参数列表为空");
     }
+    this._argv = argv;
     let runner = new Promise((resolve, reject) => {
       let chain = Promise.resolve();
       chain = chain.then(() => this.checkNodeVersion());

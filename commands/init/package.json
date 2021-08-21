@@ -25,7 +25,8 @@
   },
   "dependencies": {
     "@eff-org/command": "file:../../models/command",
-    "@eff-org/log": "file:../../utils/log"
+    "@eff-org/log": "file:../../utils/log",
+    "inquirer": "^8.1.2"
   },
   "bugs": {
     "url": "https://github.com/qq919006380/eff/issues"
