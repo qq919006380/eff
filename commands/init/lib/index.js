@@ -1,7 +1,10 @@
 "use strict";
-
+const fs = require("fs");
+const inquirer = require("inquirer");
+const fse = require("fs-extra");
 const Command = require("@eff-org/command");
 const log = require("@eff-org/log");
+
 class InitCommand extends Command {
   init() {
     this.projectName = this._argv[0] || "";
@@ -10,10 +13,10 @@ class InitCommand extends Command {
     log.verbose("force", this.force);
   }
 
-  exec() {
+  async exec() {
     try {
       // 1. 准备阶段
-      this.prepare();
+      await this.prepare();
       // 2. 下载模板
       // 3.  安装模板
     } catch (e) {
@@ -21,23 +24,32 @@ class InitCommand extends Command {
     }
   }
 
-  prepare() {
+  async prepare() {
     // 判断当前目录是否为空
-    const ret = this.isCwdEmpty();
-    console.log(ret);
+    const localPath = process.cwd();
+    if (!this.isDirEmpty(localPath)) {
+      //  询问是否继续创建
+      const { ifContinue } = await inquirer.prompt({
+        type: "confirm",
+        name: "ifContinue",
+        default: false,
+        message: "当文件夹不为空，是否继续创建？",
+      });
+      if (ifContinue) {
+        fse.emptydirSync()
+        console.log('清空成功');
+      }
+    }
     // 是否启动强制更新
     // 选择创建项目或组件
   }
 
-  isCwdEmpty() {
-    const localPath = process.cwd();
+  isDirEmpty(localPath) {
     let fileList = fs.readdirSync(localPath);
     // 文件过滤逻辑
-    console.log(fileList);
     fileList = fileList.filter((file) => {
       return !file.startsWith(".") && ["node_moduels"].indexOf(file) < 0;
     });
-    console.log(fileList);
     return !fileList || fileList.length <= 0;
   }
 }
