@@ -28,16 +28,31 @@ class InitCommand extends Command {
     // 判断当前目录是否为空
     const localPath = process.cwd();
     if (!this.isDirEmpty(localPath)) {
-      //  询问是否继续创建
-      const { ifContinue } = await inquirer.prompt({
-        type: "confirm",
-        name: "ifContinue",
-        default: false,
-        message: "当文件夹不为空，是否继续创建？",
-      });
-      if (ifContinue) {
-        fse.emptydirSync()
-        console.log('清空成功');
+      let ifContinue = false;
+      if (!this.force) {
+        //  询问是否继续创建
+        ifContinue = (
+          await inquirer.prompt({
+            type: "confirm",
+            name: "ifContinue",
+            default: false,
+            message: "当文件夹不为空，是否继续创建？",
+          })
+        ).ifContinue;
+      }
+
+      if (ifContinue || this.force) {
+        // 二次确认
+        const { confirmDelete } = await inquirer.prompt({
+          type: "confirm",
+          name: "confirmDelete",
+          default: false,
+          message: "是否确认清空当前目录下的文件？",
+        });
+        if (confirmDelete) {
+          // 清空当前目录
+          fse.emptydirSync(localPath);
+        }
       }
     }
     // 是否启动强制更新
