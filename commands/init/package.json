@@ -26,6 +26,7 @@
   "dependencies": {
     "@eff-org/command": "file:../../models/command",
     "@eff-org/log": "file:../../utils/log",
+    "@eff-org/request": "file:../../utils/request",
     "fs-extra": "^10.0.0",
     "inquirer": "^8.1.2",
     "semver": "^7.3.5"

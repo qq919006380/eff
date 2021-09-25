@@ -6,6 +6,9 @@ const semver = require("semver");
 const Command = require("@eff-org/command");
 const log = require("@eff-org/log");
 
+const getProjecTemplate = require("./getProjectTemplate");
+const getProjectTemplate = require("./getProjectTemplate");
+
 const TYPE_PROJECT = "project";
 const TYPE_COMPONENT = "componm";
 class InitCommand extends Command {
@@ -22,19 +25,20 @@ class InitCommand extends Command {
       const projectInfo = await this.prepare();
       if (projectInfo) {
         // 2. 下载模板
-        log.verbose('projectInfo',projectInfo);
-        this.downloadTemplate()
+        log.verbose("projectInfo", projectInfo);
+        this.downloadTemplate();
         // 3.  安装模板
       }
     } catch (e) {
       log.error(e.message);
     }
   }
-  downloadTemplate(){
-    
-  }
+  downloadTemplate() {}
   async prepare() {
-    // 判断当前目录是否为空
+    // 1、判断项目模板是否存在
+    const template=await getProjectTemplate()
+    console.log(template)
+    // 2、判断当前目录是否为空
     const localPath = process.cwd();
     if (!this.isDirEmpty(localPath)) {
       let ifContinue = false;
