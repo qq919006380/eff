@@ -1,16 +1,20 @@
 "use strict";
 const fs = require("fs");
+const path = require("path");
 const inquirer = require("inquirer");
 const fse = require("fs-extra");
 const semver = require("semver");
+const userHome = require("user-home");
 const Command = require("@eff-org/command");
+const Package = require("@eff-org/package");
 const log = require("@eff-org/log");
+const { spinnerStart, sleep } = require("@eff-org/utils");
 
-const getProjecTemplate = require("./getProjectTemplate");
 const getProjectTemplate = require("./getProjectTemplate");
 
 const TYPE_PROJECT = "project";
 const TYPE_COMPONENT = "componm";
+
 class InitCommand extends Command {
   init() {
     this.projectName = this._argv[0] || "";
@@ -26,18 +30,54 @@ class InitCommand extends Command {
       if (projectInfo) {
         // 2. 下载模板
         log.verbose("projectInfo", projectInfo);
-        this.downloadTemplate();
+        this.projectInfo = projectInfo;
+        await this.downloadTemplate();
         // 3.  安装模板
       }
     } catch (e) {
       log.error(e.message);
     }
   }
-  downloadTemplate() {}
+  async downloadTemplate() {
+    const { projectTemplate } = this.projectInfo;
+    const templateInfo = this.template.find(
+      (item) => item.npmName == projectTemplate
+    );
+    const targetPath = path.resolve(userHome, ".eff-org", "template");
+    const storeDir = path.resolve(
+      userHome,
+      ".eff-org",
+      "template",
+      "node_modules"
+    );
+    const { npmName, version } = templateInfo;
+    const templateNpm = new Package({
+      targetPath,
+      storeDir,
+      packageName: npmName,
+      packageVersion: version,
+    });
+    if (!(await templateNpm.exists())) {
+      const spinner = spinnerStart("正在下载模板");
+      await sleep();
+      await templateNpm.install();
+      spinner.stop(true);
+      log.success('下载模板成功')
+    } else {
+      const spinner = spinnerStart("正在更新模板");
+      await sleep();
+      await templateNpm.update();
+      spinner.stop(true);
+      log.success('更新模板成功')
+    }
+  }
   async prepare() {
     // 1、判断项目模板是否存在
-    const template=await getProjectTemplate()
-    console.log(template)
+    const template = await getProjectTemplate();
+    if (!template || template.length == 0) {
+      throw new Error("项目模板不存在");
+    }
+    this.template = template;
     // 2、判断当前目录是否为空
     const localPath = process.cwd();
     if (!this.isDirEmpty(localPath)) {
@@ -146,6 +186,12 @@ class InitCommand extends Command {
             }
           },
         },
+        {
+          type: "list",
+          name: "projectTemplate",
+          message: "请选择项目模板",
+          choices: this.createTemplateChoices(),
+        },
       ]);
       projectInfo = {
         type,
@@ -162,6 +208,13 @@ class InitCommand extends Command {
       return !file.startsWith(".") && ["node_moduels"].indexOf(file) < 0;
     });
     return !fileList || fileList.length <= 0;
+  }
+
+  createTemplateChoices() {
+    return this.template.map((item) => ({
+      value: item.npmName,
+      name: item.name,
+    }));
   }
 }
 function init(argv) {

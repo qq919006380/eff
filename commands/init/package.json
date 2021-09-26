@@ -26,10 +26,13 @@
   "dependencies": {
     "@eff-org/command": "file:../../models/command",
     "@eff-org/log": "file:../../utils/log",
+    "@eff-org/package": "file:../../models/package",
     "@eff-org/request": "file:../../utils/request",
+    "@eff-org/utils": "file:../../utils/utils",
     "fs-extra": "^10.0.0",
     "inquirer": "^8.1.2",
-    "semver": "^7.3.5"
+    "semver": "^7.3.5",
+    "user-home": "^3.0.0"
   },
   "bugs": {
     "url": "https://github.com/qq919006380/eff/issues"
