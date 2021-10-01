@@ -15,6 +15,9 @@ const getProjectTemplate = require("./getProjectTemplate");
 const TYPE_PROJECT = "project";
 const TYPE_COMPONENT = "componm";
 
+const TEMPLATE_TYPE_NORMAL = "normal";
+const TEMPLATE_TYPE_CUSTOM = "custom";
+
 class InitCommand extends Command {
   init() {
     this.projectName = this._argv[0] || "";
@@ -33,17 +36,64 @@ class InitCommand extends Command {
         this.projectInfo = projectInfo;
         await this.downloadTemplate();
         // 3.  安装模板
+        await this.installTemplate();
       }
     } catch (e) {
       log.error(e.message);
     }
   }
+
+  async installTemplate() {
+    if (this.templateInfo) {
+      if (!this.templateInfo.type) {
+        this.templateInfo.type = TEMPLATE_TYPE_NORMAL;
+      }
+      if (this.templateInfo.type === TEMPLATE_TYPE_NORMAL) {
+        // 标准安装
+        await this.installNormalTemplate();
+      } else if (this.templateInfo.type === TEMPLATE_TYPE_CUSTOM) {
+        // 自定义安装
+        await this.installCustomTemplate();
+      } else {
+        throw new Error("无法识别项目模板类型！");
+      }
+    } else {
+      throw new Error("项目模板信息不存在！");
+    }
+  }
+
+  async installNormalTemplate() {
+    // 拷贝模板代码到当前目录
+    let spinner = spinnerStart("正在安装模板...");
+    await sleep()
+    try {
+      const templatePath = path.resolve(
+        this.templateNpm.cacheFilePath,
+        "template"
+      );
+      const targetPath = process.cwd();
+
+      fse.ensureDirSync(templatePath);
+      fse.ensureDirSync(targetPath);
+      fse.copySync(templatePath, targetPath);
+    } catch (e) {
+      throw e;
+    } finally {
+      spinner.stop(true);
+      log.success('模板安装成功')
+    }
+  }
+  async installCustomTemplate() {
+    console.log("安装自定义模板");
+  }
+
   async downloadTemplate() {
     const { projectTemplate } = this.projectInfo;
     const templateInfo = this.template.find(
       (item) => item.npmName == projectTemplate
     );
     const targetPath = path.resolve(userHome, ".eff-org", "template");
+    this.templateInfo = templateInfo;
     const storeDir = path.resolve(
       userHome,
       ".eff-org",
@@ -60,15 +110,29 @@ class InitCommand extends Command {
     if (!(await templateNpm.exists())) {
       const spinner = spinnerStart("正在下载模板");
       await sleep();
-      await templateNpm.install();
-      spinner.stop(true);
-      log.success('下载模板成功')
+      try {
+        await templateNpm.install();
+      } catch (e) {
+        throw e;
+      } finally {
+        spinner.stop(true);
+        if (await templateNpm.exists()) {
+          log.success("下载模板成功");
+        }
+      }
     } else {
       const spinner = spinnerStart("正在更新模板");
       await sleep();
-      await templateNpm.update();
-      spinner.stop(true);
-      log.success('更新模板成功')
+      try {
+        await templateNpm.update();
+      } catch (e) {
+        throw e;
+      } finally {
+        spinner.stop(true);
+        if (await templateNpm.exists()) {
+          log.success("更新模板成功");
+        }
+      }
     }
   }
   async prepare() {
