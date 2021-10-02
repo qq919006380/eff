@@ -8,7 +8,7 @@ const userHome = require("user-home");
 const Command = require("@eff-org/command");
 const Package = require("@eff-org/package");
 const log = require("@eff-org/log");
-const { spinnerStart, sleep } = require("@eff-org/utils");
+const { spinnerStart, sleep, execAsync } = require("@eff-org/utils");
 
 const getProjectTemplate = require("./getProjectTemplate");
 
@@ -17,6 +17,8 @@ const TYPE_COMPONENT = "componm";
 
 const TEMPLATE_TYPE_NORMAL = "normal";
 const TEMPLATE_TYPE_CUSTOM = "custom";
+
+const WHITE_COMMAND = ["npm", "cnpm"];
 
 class InitCommand extends Command {
   init() {
@@ -62,10 +64,39 @@ class InitCommand extends Command {
     }
   }
 
+  checkCommand() {
+    if (WHITE_COMMAND.includes(cmd)) {
+      return cmd;
+    }
+    return null;
+  }
+
+  async execCommand(command, errMsg) {
+    let ret;
+    if (command) {
+      const cmdArray = startCommand.split(" ");
+      const cmd = checkCommand(cmdArray[0]);
+      if (!cmd) {
+        throw new Error("命令不存在！命令：" + command);
+      }
+
+      const args = cmdArray.slice(1);
+      ret = await execAsync(cmd, args, {
+        stdio: "inherit",
+        cwd: process.cwd(),
+      });
+
+      if (ret !== 0) {
+        throw new Error(errMsg);
+      }
+      return ret;
+    }
+  }
+
   async installNormalTemplate() {
     // 拷贝模板代码到当前目录
     let spinner = spinnerStart("正在安装模板...");
-    await sleep()
+    await sleep();
     try {
       const templatePath = path.resolve(
         this.templateNpm.cacheFilePath,
@@ -80,8 +111,16 @@ class InitCommand extends Command {
       throw e;
     } finally {
       spinner.stop(true);
-      log.success('模板安装成功')
+      log.success("模板安装成功");
     }
+
+    
+    const { installCommand, startCommand } = this.templateInfo;
+    // 安装依赖
+    await this.execCommand(installCommand, "依赖安装过程中失败!");
+    // 启动命令执行
+    await this.execCommand(startCommand, "依赖安装过程中失败!");
+    
   }
   async installCustomTemplate() {
     console.log("安装自定义模板");
@@ -118,6 +157,7 @@ class InitCommand extends Command {
         spinner.stop(true);
         if (await templateNpm.exists()) {
           log.success("下载模板成功");
+          this.templateNpm = templateNpm;
         }
       }
     } else {
@@ -131,6 +171,7 @@ class InitCommand extends Command {
         spinner.stop(true);
         if (await templateNpm.exists()) {
           log.success("更新模板成功");
+          this.templateNpm = templateNpm;
         }
       }
     }

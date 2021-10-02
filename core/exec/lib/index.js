@@ -1,9 +1,9 @@
 "use strict";
 
-const cp = require("child_process");
 const path = require("path");
 const Package = require("@eff-org/package");
 const log = require("@eff-org/log");
+const {exec:spawn} = require("@eff-org/utils");
 const SETTINGS = {
   init: "jquery",
 };
@@ -87,13 +87,5 @@ async function exec() {
   }
 }
 
-function spawn(command, args, option) {
-  const win32 = process.platform === "win32";
-
-  const cmd = win32 ? "cmd" : command;
-  const cmdArgs = win32 ? ["/c"].concat(command, args) : args;
-
-  return cp.spawn(cmd,cmdArgs,option||{})
-}
-
+ 
 module.exports = exec;
