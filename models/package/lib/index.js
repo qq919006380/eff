@@ -94,8 +94,6 @@ class Package {
     } else {
       this.packageVersion = latestPackageVersion;
     }
-
-    console.log("更新" + latestPackageVersion);
   }
 
   //   获取入口文件的路径
