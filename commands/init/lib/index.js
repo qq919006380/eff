@@ -135,6 +135,7 @@ class InitCommand extends Command {
   }
 
   async installNormalTemplate() {
+    console.log("templateNpm", this.templateNpm);
     // 拷贝模板代码到当前目录
     let spinner = spinnerStart("正在安装模板...");
     await sleep();
@@ -164,7 +165,32 @@ class InitCommand extends Command {
     await this.execCommand(startCommand, "启动执行命令失败!");
   }
   async installCustomTemplate() {
-    console.log("安装自定义模板");
+    // 查询自定义模板的入口文件
+    if (await this.templateNpm.exists()) {
+      const rootFile = this.templateNpm.getRootFilePath();
+      if (fs.existsSync(rootFile)) {
+        log.notice("开始执行自定义模板");
+        const templatePath = path.resolve(
+          this.templateNpm.cacheFilePath,
+          "template"
+        );
+        const options = {
+          templateInfo:this.templateInfo,
+          projectInfo:this.projectInfo,
+          sourcePath: templatePath,
+          targetPath: process.cwd(),
+        };
+        const code = `require('${rootFile}')(${JSON.stringify(options)})`;
+        log.verbose("code", code);
+        await execAsync("node", ["-e", code], {
+          stdio: "inherit",
+          cwd: process.cwd(),
+        });
+        log.success("自定义模板安装成功");
+      } else {
+        throw new Error("自定义模板入口文件不存在！");
+      }
+    }
   }
 
   async downloadTemplate() {
@@ -291,7 +317,7 @@ class InitCommand extends Command {
     this.template = this.template.filter((template) =>
       template.tag.includes(type)
     );
-    const title=type===TYPE_PROJECT?'项目':'组件'
+    const title = type === TYPE_PROJECT ? "项目" : "组件";
     const projectNamePrompt = {
       type: "input",
       name: "projectName",
