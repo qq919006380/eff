@@ -1,6 +1,6 @@
 {
   "name": "@eff-org/core",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "> TODO: description",
   "author": "weibo <919006380@qq.com>",
   "homepage": "",
@@ -20,10 +20,10 @@
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "dependencies": {
-    "@eff-org/get-npm-info": "file:../../utils/get-npm-info",
-    "@eff-org/log": "file:../../utils/log",
-    "@eff-org/init": "file:../../commands/init",
     "@eff-org/exec": "file:../exec",
+    "@eff-org/get-npm-info": "file:../../utils/get-npm-info",
+    "@eff-org/init": "file:../../commands/init",
+    "@eff-org/log": "file:../../utils/log",
     "colors": "^1.4.0",
     "commander": "^6.1.0",
     "dotenv": "^10.0.0",

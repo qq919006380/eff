@@ -1,6 +1,6 @@
 {
   "name": "@eff-org/exec",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "> TODO: description",
   "author": "weibo <919006380@qq.com>",
   "homepage": "https://github.com/qq919006380/eff#readme",
@@ -24,8 +24,8 @@
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "dependencies": {
-    "@eff-org/package": "file:../../models/package",
     "@eff-org/log": "file:../../utils/log",
+    "@eff-org/package": "file:../../models/package",
     "@eff-org/utils": "file:../../utils/utils"
   },
   "bugs": {
